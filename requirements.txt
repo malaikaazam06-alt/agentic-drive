@@ -1,0 +1,8 @@
+flask>=3.0
+scikit-learn>=1.4
+numpy>=1.26
+pypdf>=4.0
+python-docx>=1.1
+# optional
+# anthropic>=0.40            (set ANTHROPIC_API_KEY to enable Claude-written answers)
+# sentence-transformers>=3   (set USE_EMBEDDINGS=1 for hybrid dense retrieval)
