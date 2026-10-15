@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cortex Drive</title>
+<style>
+:root{
+  --bg:#f6f5f2; --panel:#ffffff; --ink:#1d1b20; --muted:#6c6a73; --line:#e6e3dc;
+  --accent:#4f46e5; --accent-soft:#eceafd; --good:#0f8a5f; --warn:#b45309; --warn-soft:#fdf1df;
+  --radius:12px;
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#141318; --panel:#1d1b22; --ink:#ecebf1; --muted:#9a98a5; --line:#2e2b36;
+        --accent:#8b83ff; --accent-soft:#25233d; --good:#46d19c; --warn:#f0a95b; --warn-soft:#3a2d1a;}
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
+.logo{font-weight:700;font-size:17px;letter-spacing:-.2px}
+.logo span{color:var(--accent)}
+.badge{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-weight:600}
+.spacer{flex:1}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:6px 12px;border-radius:8px}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+main{flex:1;min-height:0;display:grid;grid-template-columns:300px minmax(0,1fr) 360px;gap:14px;padding:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);display:flex;flex-direction:column;min-height:0}
+.card h3{margin:0;padding:12px 14px;font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.scroll{overflow:auto;min-height:0;flex:1;padding:10px 12px}
+.folder{margin-bottom:12px}
+.folder-h{font-weight:650;display:flex;gap:6px;align-items:center;margin-bottom:4px}
+.folder-h small{color:var(--muted);font-weight:400}
+.file{display:flex;gap:8px;padding:5px 6px;border-radius:8px;align-items:flex-start}
+.file:hover{background:var(--bg)}
+.file input{margin-top:4px}
+.fname{cursor:pointer;word-break:break-all;font-size:13px}
+.fname:hover{color:var(--accent)}
+.ico{font-size:10px;font-weight:700;border-radius:5px;padding:1px 5px;background:var(--accent-soft);color:var(--accent);margin-top:2px;flex:none}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.tag{font-size:10.5px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:0 6px}
+.new{animation:flash 2.2s ease-out}
+@keyframes flash{0%{background:var(--accent-soft)}100%{background:transparent}}
+.dropzone{margin:10px 12px;border:1.5px dashed var(--line);border-radius:10px;padding:10px;text-align:center;color:var(--muted);font-size:12.5px}
+.dropzone.over{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.wf{padding:8px 10px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;font-size:12.5px}
+.wf b{display:block}
+.wf span{color:var(--muted)}
+/* chat */
+#chat{flex:1;min-height:0;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+.msg{max-width:92%}
+.msg.user{align-self:flex-end;background:var(--accent);color:#fff;padding:8px 13px;border-radius:14px 14px 4px 14px}
+.msg.agent{align-self:flex-start;background:var(--bg);border:1px solid var(--line);padding:12px 14px;border-radius:14px 14px 14px 4px;width:92%}
+.chip{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-bottom:6px}
+.trace{font-size:12px;color:var(--muted);margin:4px 0 8px;padding-left:0;list-style:none}
+.trace li{padding-left:16px;position:relative;opacity:0;transform:translateY(3px);transition:all .25s}
+.trace li.show{opacity:1;transform:none}
+.trace li:before{content:"";position:absolute;left:2px;top:7px;width:6px;height:6px;border-radius:50%;background:var(--good)}
+.body p{margin:6px 0}
+.body ul{margin:6px 0;padding-left:20px}
+.body h1,.body h2,.body h3{margin:12px 0 4px}
+.body h1{font-size:18px}.body h2{font-size:15px}.body h3{font-size:14px}
+.body blockquote{margin:4px 0;padding:2px 10px;border-left:3px solid var(--warn);background:var(--warn-soft);border-radius:4px}
+sup.cite{background:var(--accent-soft);color:var(--accent);border-radius:4px;padding:0 4px;font-size:10px;font-weight:700;margin-left:2px}
+.sources{margin-top:8px;display:grid;gap:6px}
+.src{font-size:12px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:var(--panel)}
+.src b{color:var(--accent)}
+.src i{color:var(--muted);font-style:normal;display:block}
+.doccard{margin-top:10px;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:4px 14px 12px}
+.actions{display:flex;gap:8px;margin-top:8px}
+.bars{margin-top:10px;display:grid;gap:6px}
+.bar{display:grid;grid-template-columns:120px 1fr 80px;gap:8px;align-items:center;font-size:12px}
+.bar div.t{background:var(--accent-soft);border-radius:6px;height:12px;overflow:hidden}
+.bar div.t i{display:block;height:100%;background:var(--accent);border-radius:6px}
+.suggest{display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 10px}
+.suggest button{font-size:12.5px;border-radius:99px;padding:5px 11px;color:var(--accent);background:var(--accent-soft);border-color:transparent}
+form{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line)}
+form input{flex:1;font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+form input:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.dots span{display:inline-block;width:6px;height:6px;margin-right:3px;border-radius:50%;background:var(--muted);animation:b 1s infinite}
+.dots span:nth-child(2){animation-delay:.15s}.dots span:nth-child(3){animation-delay:.3s}
+@keyframes b{0%,80%,100%{opacity:.25}40%{opacity:1}}
+/* right */
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;border:0;border-radius:0;background:none;padding:10px 4px;color:var(--muted);font-weight:600;font-size:12.5px;border-bottom:2px solid transparent}
+.tabs button.on{color:var(--accent);border-bottom-color:var(--accent)}
+.ev{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.ev time{color:var(--muted);font-variant-numeric:tabular-nums;flex:none}
+.ev em{font-style:normal;font-weight:700;color:var(--accent);flex:none}
+.ev.workflow em{color:var(--good)}
+.ev.error em{color:var(--warn)}
+.ins{border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin-bottom:9px;font-size:12.5px}
+.ins b{display:block;margin-bottom:2px}
+.ins pre{margin:4px 0 0;white-space:pre-wrap;font:inherit;color:var(--muted)}
+.ins.figure,.ins.reversal{border-color:var(--warn);background:var(--warn-soft)}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px}
+th,td{text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:600}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.sub{font-size:12px;color:var(--muted);margin:2px 0 6px}
+dialog{border:1px solid var(--line);border-radius:14px;max-width:640px;width:92%;background:var(--panel);color:var(--ink)}
+dialog pre{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Menlo,monospace;max-height:60vh;overflow:auto}
+#overlay{position:fixed;inset:0;background:rgba(79,70,229,.12);display:none;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:var(--accent);z-index:9;border:3px dashed var(--accent)}
+#toasts{position:fixed;right:16px;bottom:16px;display:grid;gap:8px;z-index:10}
+.toast{background:var(--ink);color:var(--bg);padding:9px 13px;border-radius:10px;font-size:12.5px;max-width:340px;animation:b2 .3s}
+@keyframes b2{from{transform:translateY(8px);opacity:0}}
+@media (max-width:1100px){main{grid-template-columns:1fr;overflow:auto}.card{min-height:360px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Cortex<span>Drive</span></div>
+  <span class="badge">agentic workspace</span>
+  <span class="badge" id="mode">offline mode</span>
+  <div class="spacer"></div>
+  <button id="demoBtn">Simulate a file drop</button>
+  <button id="uploadBtn" class="primary">Upload files</button>
+  <button id="resetBtn" title="Restore the demo workspace">Reset demo</button>
+  <input id="fileInput" type="file" accept=".txt,.md,.csv,.pdf,.docx,.json,.html,.xml" multiple hidden>
+</header>
+
+<main>
+  <section class="card">
+    <h3>Your drive <span class="badge">self-organising</span></h3>
+    <div class="scroll" id="tree"></div>
+    <div class="dropzone" id="dz">Drop files anywhere - no folders to create</div>
+    <h3 style="border-top:1px solid var(--line)">Active automations</h3>
+    <div class="scroll" id="wfs" style="max-height:190px"></div>
+  </section>
+
+  <section class="card">
+    <h3>Ask your drive <span class="sub" id="selInfo" style="margin:0"></span></h3>
+    <div id="chat"></div>
+    <div class="suggest" id="suggest"></div>
+    <form id="form">
+      <input id="q" placeholder="Ask, search, draft or automate - e.g. 'What was the budget discussed in the Q3 marketing meetings?'" autocomplete="off">
+      <button class="primary">Send</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <div class="tabs">
+      <button data-t="activity" class="on">Agent activity</button>
+      <button data-t="insights">Insights</button>
+      <button data-t="outputs">Outputs</button>
+    </div>
+    <div class="scroll" id="panel"></div>
+  </section>
+</main>
+
+<dialog id="dlg"><b id="dlgT"></b><div class="sub" id="dlgS"></div><pre id="dlgB"></pre><button onclick="dlg.close()">Close</button></dialog>
+<div id="overlay">Drop to let the agents file it</div>
+<div id="toasts"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const dlg=$('#dlg');
+let SEL=new Set(), TAB='activity', KNOWN=new Set(), FIRST=true;
+
+async function api(path,opts){const r=await fetch(path,opts);if(!r.ok)throw new Error(await r.text());return r.json()}
+function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function toast(t){const e=document.createElement('div');e.className='toast';e.textContent=t;$('#toasts').appendChild(e);setTimeout(()=>e.remove(),5200)}
+
+function inline(s){
+  return esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/(^|[^*])\*([^*]+)\*/g,'$1<i>$2</i>')
+    .replace(/\[(\d+(?:\s*,\s*\d+)*)\]/g,(m,a)=>'<sup class="cite">'+a.replace(/\s/g,'')+'</sup>');
+}
+function md(s){
+  const out=[];let list=false;
+  for(const raw of s.split('\n')){
+    const l=raw.trimEnd();
+    let m;
+    if((m=l.match(/^(#{1,3})\s+(.*)/))){if(list){out.push('</ul>');list=false}out.push(`<h${m[1].length}>${inline(m[2])}</h${m[1].length}>`)}
+    else if((m=l.match(/^\s*[-*]\s+(.*)/))||(m=l.match(/^\s*\d+\.\s+(.*)/))){if(!list){out.push('<ul>');list=true}out.push('<li>'+inline(m[1])+'</li>')}
+    else if((m=l.match(/^>\s?(.*)/))){if(list){out.push('</ul>');list=false}out.push('<blockquote>'+inline(m[1])+'</blockquote>')}
+    else if(l.trim()===''){if(list){out.push('</ul>');list=false}}
+    else{if(list){out.push('</ul>');list=false}out.push('<p>'+inline(l)+'</p>')}
+  }
+  if(list)out.push('</ul>');
+  return out.join('');
+}
+
+/* ---------- drive tree ---------- */
+async function loadTree(){
+  const d=await api('/api/files');
+  const html=d.folders.map(f=>`
+    <div class="folder"><div class="folder-h">&#128193; ${esc(f.name)} <small>${f.files.length}</small></div>
+    ${f.files.map(x=>`<div class="file ${!FIRST&&!KNOWN.has(x.id)?'new':''}" title="${esc(x.summary)}">
+      <input type="checkbox" data-id="${x.id}" ${SEL.has(x.id)?'checked':''}>
+      <span class="ico">${esc(x.type.slice(0,3).toUpperCase())}</span>
+      <div><div class="fname" data-id="${x.id}">${esc(x.name)}</div>
+      <div class="tags">${x.tags.slice(1).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div></div></div>`).join('')}
+    </div>`).join('');
+  $('#tree').innerHTML=html;
+  d.folders.forEach(f=>f.files.forEach(x=>KNOWN.add(x.id)));FIRST=false;
+  $('#wfs').innerHTML=d.workflows.map(w=>`<div class="wf"><b>${esc(w.name)}</b><span>When: ${esc(w.trigger)}.<br>Then: ${esc(w.action)}.</span></div>`).join('');
+  document.querySelectorAll('#tree input').forEach(c=>c.onchange=()=>{c.checked?SEL.add(c.dataset.id):SEL.delete(c.dataset.id);selInfo()});
+  document.querySelectorAll('.fname').forEach(n=>n.onclick=async()=>{
+    const f=await api('/api/file/'+n.dataset.id);
+    $('#dlgT').textContent=f.name;$('#dlgS').textContent='Filed in: '+f.folder+'  |  tags: '+f.tags.join(', ');$('#dlgB').textContent=f.text;dlg.showModal()});
+  selInfo();
+}
+function selInfo(){$('#selInfo').textContent=SEL.size?`${SEL.size} file${SEL.size>1?'s':''} selected`:''}
+
+/* ---------- right panel ---------- */
+async function loadPanel(){
+  if(TAB==='activity'){
+    const ev=await api('/api/activity');
+    $('#panel').innerHTML=ev.map(e=>`<div class="ev ${e.kind}"><time>${e.t}</time><em>${esc(e.agent)}</em><span>${esc(e.msg)}</span></div>`).join('')||'<div class="sub">Nothing yet.</div>';
+  }else if(TAB==='insights'){
+    const c=await api('/api/insights');
+    $('#panel').innerHTML='<div class="sub">The Watcher agent reads across files and flags what you did not ask about.</div>'+
+      (c.map(x=>`<div class="ins ${x.kind}"><b>${esc(x.title)}</b><pre>${esc(x.detail)}</pre></div>`).join('')||'<div class="sub">No findings.</div>');
+  }else{
+    const o=await api('/api/outputs');
+    const ex=o.expenses,ac=o.actions;
+    $('#panel').innerHTML=`<b>expenses.csv</b><div class="sub">Written by the Analyst when invoices land.</div>`+
+     (ex.length?`<table><tr><th>Date</th><th>Vendor</th><th>Category</th><th>USD</th></tr>${ex.map(r=>`<tr><td>${r.date}</td><td>${esc(r.vendor)}<br><span class="sub">#${esc(r.invoice_no)}</span></td><td>${esc(r.category)}</td><td class="num">${Number(r.amount_usd).toLocaleString()}</td></tr>`).join('')}</table>`:'<div class="sub">Empty - click "Simulate a file drop".</div>')+
+     `<b>action_items.csv</b><div class="sub">Extracted from meeting transcripts.</div>`+
+     (ac.length?`<table><tr><th>Owner</th><th>Task</th></tr>${ac.map(r=>`<tr><td>${esc(r.owner)}</td><td>${esc(r.task)}</td></tr>`).join('')}</table>`:'');
+  }
+}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');TAB=b.dataset.t;loadPanel()});
+
+async function refresh(){await Promise.all([loadTree(),loadPanel(),status()])}
+async function status(){
+  const s=await api('/api/status');
+  $('#mode').textContent=s.llm?'Claude-powered':'offline mode';
+  $('#demoBtn').textContent=s.demo_left?`Simulate a file drop (${s.demo_left} left)`:'No more demo files';
+  $('#demoBtn').disabled=!s.demo_left;
+}
+
+/* ---------- chat ---------- */
+const LABEL={ask:'Researcher',synth:'Writer',expenses:'Analyst',organize:'Librarian',insights:'Watcher'};
+function addMsg(cls,html){const d=document.createElement('div');d.className='msg '+cls;d.innerHTML=html;$('#chat').appendChild(d);$('#chat').scrollTop=1e9;return d}
+
+async function send(text){
+  if(!text.trim())return;
+  addMsg('user',esc(text));
+  const wait=addMsg('agent','<span class="dots"><span></span><span></span><span></span></span>');
+  try{
+    const r=await api('/api/agent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,selected:[...SEL]})});
+    let h=`<span class="chip">${LABEL[r.intent]||'Agent'} agent</span><ul class="trace">${r.trace.map(t=>`<li>${esc(t)}</li>`).join('')}</ul><div class="body">${md(r.answer)}</div>`;
+    if(r.chart)h+=`<div class="bars">${(()=>{const mx=Math.max(...r.chart.map(c=>c.value));return r.chart.map(c=>`<div class="bar"><span>${esc(c.label)}</span><div class="t"><i style="width:${c.value/mx*100}%"></i></div><span>$${Math.round(c.value).toLocaleString()}</span></div>`).join('')})()}</div>`;
+    if(r.doc)h+=`<div class="doccard body">${md(r.doc.markdown)}</div><div class="actions"><button class="primary" id="save">Save to my drive</button><button id="dl">Download .md</button></div>`;
+    if(r.sources.length)h+=`<div class="sources">${r.sources.map(s=>`<div class="src"><b>[${s.n}]</b> ${esc(s.name)} <span class="sub">${s.date} - ${esc(s.folder)}</span><i>${esc(s.snippet)}</i></div>`).join('')}</div>`;
+    wait.innerHTML=h;
+    wait.querySelectorAll('.trace li').forEach((li,i)=>setTimeout(()=>li.classList.add('show'),i*260));
+    if(r.doc){
+      wait.querySelector('#save').onclick=async e=>{await api('/api/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(r.doc)});e.target.textContent='Saved';e.target.disabled=true;toast('Saved into your drive - the Librarian will file it');refresh()};
+      wait.querySelector('#dl').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([r.doc.markdown],{type:'text/markdown'}));a.download=r.doc.title.replace(/[^a-z0-9]+/gi,'_')+'.md';a.click()};
+    }
+    $('#chat').scrollTop=1e9;
+    refresh();
+  }catch(e){wait.innerHTML='Something went wrong: '+esc(e.message)}
+}
+$('#form').onsubmit=e=>{e.preventDefault();const v=$('#q').value;$('#q').value='';send(v)};
+const SUGG=['What was the budget discussed in the Q3 marketing meetings?',
+ 'Draft a unified requirements document from the Orbit discovery calls',
+ 'Did anyone change their mind about anything?','Organize my drive',
+ 'How much have we spent on invoices so far?'];
+$('#suggest').innerHTML=SUGG.map(s=>`<button>${esc(s)}</button>`).join('');
+document.querySelectorAll('#suggest button').forEach(b=>b.onclick=()=>send(b.textContent));
+
+/* ---------- upload / drop ---------- */
+async function upload(files){
+  if(!files || !files.length)return;
+  const selected=[...files];
+  const fd=new FormData();selected.forEach(f=>fd.append('files',f));
+  toast('Uploading '+selected.length+' file(s)...');
+  try{
+    const r=await api('/api/upload',{method:'POST',body:fd});
+    r.events.filter(e=>e.kind!=='info').forEach(e=>toast(e.agent+': '+e.msg));
+    if(r.ingested && r.ingested.length) toast('Uploaded successfully: '+r.ingested.join(', '));
+    if(r.errors && r.errors.length) r.errors.forEach(e=>toast('Could not upload '+e.name+': '+e.error));
+    if(!r.ingested?.length && !r.errors?.length) toast('No readable text found. Try a TXT, MD, CSV, text-based PDF, or DOCX file.');
+    TAB='activity';document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t==='activity'));
+    await refresh();
+  }catch(err){
+    console.error('Upload failed:',err);
+    toast('Upload failed: '+err.message);
+  }finally{
+    $('#fileInput').value='';
+  }
+}
+$('#uploadBtn').onclick=()=>$('#fileInput').click();
+$('#fileInput').onchange=e=>upload(e.target.files);
+$('#demoBtn').onclick=async()=>{
+  const r=await api('/api/demo-drop',{method:'POST'});
+  if(r.done)return;
+  toast('Dropped '+r.name);r.events.filter(e=>e.kind!=='info').forEach(e=>toast(e.agent+': '+e.msg));
+  refresh();
+};
+$('#resetBtn').onclick=async()=>{await api('/api/reset',{method:'POST'});SEL.clear();KNOWN.clear();FIRST=true;$('#chat').innerHTML='';refresh();toast('Demo workspace restored')};
+let depth=0;
+window.addEventListener('dragenter',e=>{e.preventDefault();depth++;$('#overlay').style.display='flex'});
+window.addEventListener('dragleave',e=>{depth--;if(depth<=0){depth=0;$('#overlay').style.display='none'}});
+window.addEventListener('dragover',e=>e.preventDefault());
+window.addEventListener('drop',e=>{e.preventDefault();depth=0;$('#overlay').style.display='none';upload(e.dataTransfer.files)});
+
+addMsg('agent','<span class="chip">Cortex</span><div class="body"><p>I read everything in your drive, filed it into folders on my own, and I am watching for new files. Ask me anything - I answer with citations - or select files on the left and ask me to draft something from them.</p></div>');
+refresh();
+setInterval(()=>{if(TAB==='activity')loadPanel()},4000);
+</script>
+</body>
+</html>
